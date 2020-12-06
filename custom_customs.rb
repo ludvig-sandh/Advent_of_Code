@@ -65,7 +65,5 @@ while i < groups.length
     end
     count += c
     i += 1
-    puts c
-    exit
 end
 puts count
