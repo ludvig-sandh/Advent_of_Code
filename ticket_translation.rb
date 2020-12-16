@@ -11,6 +11,8 @@ for row in input[0].split("\n") do
     end
 end
 
+mine = input[1].split("\n")[1].split(",").map(&:to_i)
+
 nearby = input[2].split("\n")
 error = 0
 i = 1
@@ -49,43 +51,69 @@ def copy(ar)
     return newAr
 end
 
-def rec(i, ticket, fields)
-    p ticket
-    if ticket.length == 0
+def rec(i, tickets, fields, used = [], mem = [])
+    if used.count(1) == fields.length
         return []
     end
 
-    ans = nil
-    i = 0
-    while i < fields.length
-        newTicket = copy(ticket)
-        start = newTicket.delete_at(i)
-        puts start
-        field = fields[i]
-        ok = false
-        j = 0
-        while j < field.length
-            if start >= field[j][0] && start <= field[j][1]
-                ok = true
-            end
-            j += 1
+    if mem[i] != nil
+        if mem[i][used] != nil
+            puts "reused"
+            return mem[i][used]
         end
-        if ok
-            newFields = copy(fields).shift
-            res = rec(i + 1, newTicket, newFields)
-            if res != nil
-                ans = res
-                ans << start
-                puts "----------------------------"
-                puts start.class
-                print ans
-                return ans
-            end
-        end
-        i += 1
+    else
+        mem[i] = {}
     end
-    return ans
+
+    j = 0
+    while j < fields.length
+        if used[j] == nil
+            field = fields[j]
+            possible = true
+            k = 0
+            while k < tickets.length
+                ok = false
+                l = 0
+                while l < field.length
+                    if tickets[k][i] >= field[l][0] && tickets[k][i] <= field[l][1]
+                        ok = true
+                    end
+                    l += 1
+                end
+                if !ok
+                    possible = false
+                    break
+                end
+                k += 1
+            end
+            if possible
+                copyUsed = copy(used)
+                copyUsed[j] = 1
+                res = rec(i + 1, tickets, fields, copyUsed)
+                if res != nil
+                    return mem[i][used] = res + [j]
+                end
+            end
+        end
+        j += 1
+    end
+    return mem[i][used] = nil
 end
-p nearby[0]
-puts "ans"
-p rec(0, nearby[0].split(",").map(&:to_i), fields)
+
+i = 0
+while i < nearby.length
+    nearby[i] = nearby[i].split(",").map(&:to_i)
+    i += 1
+end
+order = rec(0, nearby, fields).reverse
+p order
+ans = 1
+i = 0
+while i < order.length
+    if order[i] < 6
+        ans *= mine[i]
+        puts "counting"
+    end
+    i += 1
+end
+puts ans
