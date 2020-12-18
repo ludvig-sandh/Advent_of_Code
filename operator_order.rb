@@ -39,36 +39,111 @@ def evaluate(line)
     return left
 end
 
+def reAddM(str)
+    i = 0
+    while i < str.length
+        if str[i] == "^"
+            str[i] = "*"
+        end
+        i += 1
+    end
+    return str
+end
+
+def removeIndex(str, index)
+    i = 0
+    newStr = ""
+    while i < str.length
+        if i != index
+            newStr += str[i]
+        end
+        i += 1
+    end
+    return newStr
+end
+
+def removeSinglePars(str)
+    i = 0
+    while i < str.length
+        if str[i] == "(" && str[i + 2] == ")"
+            str = removeIndex(str, i)
+            str = removeIndex(str, i + 1)
+        end
+        i += 1
+    end
+    return str
+end
+
+
 def fixLine(line)
-    len = line.length
     lastLen = -1
-    while lastLen != len
-        t = line.len
+    while lastLen != line.length
+        t = line.length
         if line.include?("*")
             ind = line.index("*")
-            line.insert(ind + 2, "(")
-            line.insert(ind - 1, ")")
+            stack = []
+            l = ind - 1
+            while l >= 0
+                if l == 0
+                    line.insert(0, "(")
+                    break
+                end
+                if line[l] == "*"
+                    line.insert(l + 2, "(")
+                    break
+                end
+                if line[l] == "(" && stack.empty?
+                    line.insert(l, "(")
+                    break
+                end
+                if line[l] == ")"
+                    stack << ")"
+                elsif line[l] == "("
+                    stack.pop()
+                end
+                l -= 1
+            end
+            ind = line.index("*")
+            stack = []
             r = ind + 2
-            stack = ["("]
-            while !stack.empty?
-                r += 1
+            while r < line.length
+                if r == line.length - 1
+                    line.insert(line.length, ")")
+                    break
+                end
+                if line[r] == "*" && stack.empty?
+                    line.insert(r - 1, ")")
+                    break
+                end
+                if line[r] == ")" && stack.empty?
+                    line.insert(r, ")")
+                    break
+                end
                 if line[r] == "("
                     stack << "("
                 elsif line[r] == ")"
                     stack.pop()
                 end
+                r += 1
             end
-                    
-
+            ind = line.index("*")
+            line.insert(ind + 2, "(")
+            line.insert(ind - 1, ")")
+            line[ind + 1] = "^"
         end
         lastLen = t
     end
-    return line
+    return reAddM(line)
 end
 
 sum = 0
-for line in input do
+for line in input.map(&:chomp) do
     newLine = fixLine(line)
-    sum += evaluate(newLine)
+    newLine = removeSinglePars(newLine)
+    ans = evaluate(newLine)
+    if ans == 0
+        p newLine
+    end
+    sum += ans
 end
 puts sum
